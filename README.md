@@ -1,2 +1,2 @@
-# clientgrantsprovider
-Example for how to use boto3 with AssumeRoleWithClientGrants
+# ClientGrantsProvider
+Example for how to use boto3 with AssumeRoleWithClientGrants with Minio
