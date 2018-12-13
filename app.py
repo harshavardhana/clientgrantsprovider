@@ -30,4 +30,18 @@ bc_session.get_component('credential_provider').insert_before(
 
 boto3_session = Session(botocore_session=bc_session)
 s3 = boto3_session.resource('s3', endpoint_url='http://localhost:9000')
-s3.meta.client.upload_file('/etc/hosts', 'testbucket', 'hosts')
+
+with open('/etc/hosts', 'rb') as data:
+    s3.meta.client.upload_fileobj(data,
+                                  'testbucket',
+                                  'hosts',
+                                  ExtraArgs={'ServerSideEncryption':'AES256'})
+
+# Upload with server side encryption, using temporary credentials
+s3.meta.client.upload_file('/etc/hosts',
+                           'testbucket',
+                           'hosts',
+                           ExtraArgs={'ServerSideEncryption':'AES256'})
+
+# Download encrypted object using temporary credentials
+s3.meta.client.download_file('testbucket', 'hosts', '/tmp/hosts')
