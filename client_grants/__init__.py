@@ -98,6 +98,7 @@ class ClientGrantsCredentialProvider(CredentialProvider):
             query['Action'] = 'AssumeRoleWithClientGrants'
             query['Token'] = creds['access_token']
             query['DurationSeconds'] = creds['expires_in']
+            query['Version'] = '2011-06-15'
 
             query_components=[]
             for key in query:
