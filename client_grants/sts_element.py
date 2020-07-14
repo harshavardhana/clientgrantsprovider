@@ -6,7 +6,8 @@ if hasattr(cElementTree, 'ParseError'):
 else:
     _ETREE_EXCEPTIONS = (SyntaxError, AttributeError, ValueError, TypeError)
 
-_STS_NS = {'sts' : 'https://sts.amazonaws.com/doc/2011-06-15/'}
+_STS_NS = {'sts': 'https://sts.amazonaws.com/doc/2011-06-15/'}
+
 
 class STSElement(object):
     """STS aware XML parsing class. Wraps a root element name and
@@ -14,6 +15,7 @@ class STSElement(object):
     functions.
 
     """
+
     def __init__(self, root_name, element):
         self.root_name = root_name
         self.element = element

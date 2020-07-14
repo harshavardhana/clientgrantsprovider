@@ -13,10 +13,11 @@
 # limitations under the License.
 
 import logging
-import boto3
 
-from botocore.session import get_session
+import boto3
 from boto3.session import Session
+from botocore.session import get_session
+
 from client_grants import ClientGrantsCredentialProvider
 
 boto3.set_stream_logger('boto3.resources', logging.DEBUG)
@@ -35,13 +36,13 @@ with open('/etc/hosts', 'rb') as data:
     s3.meta.client.upload_fileobj(data,
                                   'testbucket',
                                   'hosts',
-                                  ExtraArgs={'ServerSideEncryption':'AES256'})
+                                  ExtraArgs={'ServerSideEncryption': 'AES256'})
 
 # Upload with server side encryption, using temporary credentials
 s3.meta.client.upload_file('/etc/hosts',
                            'testbucket',
                            'hosts',
-                           ExtraArgs={'ServerSideEncryption':'AES256'})
+                           ExtraArgs={'ServerSideEncryption': 'AES256'})
 
 # Download encrypted object using temporary credentials
 s3.meta.client.download_file('testbucket', 'hosts', '/tmp/hosts')

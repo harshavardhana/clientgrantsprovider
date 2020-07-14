@@ -11,27 +11,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Dependencies
-import urllib3
-import certifi
-
+import json
 # standard.
 import os
-import json
 
-from dateutil.parser import parse
-from botocore.credentials import (CredentialProvider,
-                                  RefreshableCredentials,
-                                  Credentials)
+import certifi
+# Dependencies
+import urllib3
+from botocore.credentials import CredentialProvider, RefreshableCredentials
 from botocore.exceptions import CredentialRetrievalError
+from dateutil.parser import parse
 
 from .sts_element import STSElement
 
+
 class ClientGrantsCredentialProvider(CredentialProvider):
+    """
+    ClientGrantsCredentialProvider implements CredentialProvider compatible
+    implementation to be used with boto_session
+    """
     METHOD = 'assume-role-client-grants'
     CANONICAL_NAME = 'AssumeRoleClientGrants'
 
-    def __init__(self, cid, csec, idp_ep='https://localhost:9443/oauth2/token', sts_ep='http://localhost:9000'):
+    def __init__(self, cid, csec,
+                 idp_ep='http://localhost:8080/auth/realms/minio/protocol/openid-connect/token',
+                 sts_ep='http://localhost:9000'):
         self.cid = cid
         self.csec = csec
         self.idp_ep = idp_ep
@@ -72,19 +76,18 @@ class ClientGrantsCredentialProvider(CredentialProvider):
         method = self.METHOD
 
         def fetch_credentials():
-            credentials = {}
-
             # HTTP headers are case insensitive filter out
             # all duplicate headers and pick one.
             headers = {}
             headers['content-type'] = 'application/x-www-form-urlencoded'
-            headers['authorization'] = urllib3.make_headers(basic_auth='%s:%s' % (self.cid, self.csec))['authorization']
+            headers['authorization'] = urllib3.make_headers(
+                basic_auth='%s:%s' % (self.cid, self.csec))['authorization']
 
             response = self._http.urlopen('POST', self.idp_ep,
-                                          body="grant_type=client_credentials&scope=openid",
+                                          body="grant_type=client_credentials",
                                           headers=headers,
                                           preload_content=True,
-            )
+                                          )
             if response.status != 200:
                 message = "Credential refresh failed, response: %s"
                 raise CredentialRetrievalError(
@@ -100,7 +103,7 @@ class ClientGrantsCredentialProvider(CredentialProvider):
             query['DurationSeconds'] = creds['expires_in']
             query['Version'] = '2011-06-15'
 
-            query_components=[]
+            query_components = []
             for key in query:
                 if query[key] is not None:
                     query_components.append("%s=%s" % (key, query[key]))
@@ -110,7 +113,8 @@ class ClientGrantsCredentialProvider(CredentialProvider):
             if query_string:
                 sts_ep_url = self.sts_ep + '?' + query_string
 
-            response = self._http.urlopen('POST', sts_ep_url, preload_content=True)
+            response = self._http.urlopen(
+                'POST', sts_ep_url, preload_content=True)
             if response.status != 200:
                 message = "Credential refresh failed, response: %s"
                 raise CredentialRetrievalError(
@@ -127,7 +131,8 @@ class ClientGrantsCredentialProvider(CredentialProvider):
             :param data: Response data for AssumeRoleWithClientGrants request
             :return: dict
             """
-            root = STSElement.fromstring('AssumeRoleWithClientGrantsResponse', data)
+            root = STSElement.fromstring(
+                'AssumeRoleWithClientGrantsResponse', data)
             result = root.find('AssumeRoleWithClientGrantsResult')
             creds = result.find('Credentials')
             return dict(
